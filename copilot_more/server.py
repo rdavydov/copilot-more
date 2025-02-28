@@ -7,9 +7,9 @@ from fastapi.responses import StreamingResponse
 
 from copilot_more.logger import logger
 from copilot_more.proxy import RECORD_TRAFFIC, get_proxy_url, initialize_proxy
+from copilot_more.settings import settings
 from copilot_more.token import get_cached_copilot_token
 from copilot_more.utils import StringSanitizer
-
 sanitizer = StringSanitizer()
 
 initialize_proxy()
@@ -24,12 +24,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-CHAT_COMPLETIONS_API_ENDPOINT = (
-    "https://api.individual.githubcopilot.com/chat/completions"
-)
-MODELS_API_ENDPOINT = "https://api.individual.githubcopilot.com/models"
-TIMEOUT = ClientTimeout(total=300)
+# Use settings from pydantic-settings
+TIMEOUT = ClientTimeout(total=settings.timeout_seconds)
 MAX_TOKENS = 10240
 
 
@@ -74,7 +70,7 @@ def preprocess_request_body(request_body: dict) -> dict:
             if message["role"] == "system":
                 message["role"] = "user"
 
-    max_tokens = request_body.get("max_tokens", MAX_TOKENS)
+    max_tokens = request_body.get("max_tokens", settings.max_tokens)
     return {**request_body, "messages": processed_messages, "max_tokens": max_tokens}
 
 
@@ -136,12 +132,12 @@ async def list_models():
                 "headers": {
                     "Authorization": f"Bearer {token['token']}",
                     "Content-Type": "application/json",
-                    "editor-version": "vscode/1.95.3"
+                    "editor-version": settings.editor_version
                 }
             }
             if RECORD_TRAFFIC:
                 kwargs["proxy"] = get_proxy_url()
-            async with s.get(MODELS_API_ENDPOINT, **kwargs) as response:
+            async with s.get(settings.models_api_endpoint, **kwargs) as response:
                 if response.status != 200:
                     error_message = await response.text()
                     logger.error(f"Models API error: {error_message}")
@@ -184,12 +180,12 @@ async def proxy_chat_completions(request: Request):
                         "Authorization": f"Bearer {token['token']}",
                         "Content-Type": "application/json",
                         "Accept": "text/event-stream",
-                        "editor-version": "vscode/1.95.3",
+                        "editor-version": settings.editor_version,
                     },
                 }
                 if RECORD_TRAFFIC:
                     kwargs["proxy"] = get_proxy_url()
-                async with s.post(CHAT_COMPLETIONS_API_ENDPOINT, **kwargs) as response:
+                async with s.post(settings.chat_completions_api_endpoint, **kwargs) as response:
                     if response.status != 200:
                         error_message = await response.text()
                         logger.error(f"API error: {error_message}")

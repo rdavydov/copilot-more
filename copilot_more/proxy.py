@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import atexit
 import logging
-import os
 import socket
 import threading
 import time
@@ -15,11 +14,13 @@ from mitmproxy.io import FlowWriter
 from mitmproxy.options import Options
 from mitmproxy.tools.dump import DumpMaster
 
+from copilot_more.settings import settings
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
 # Global state
-RECORD_TRAFFIC = os.getenv("RECORD_TRAFFIC", "").lower() in ("true", "1", "yes")
+RECORD_TRAFFIC = settings.record_traffic
 proxy_thread: Optional[threading.Thread] = None
 proxy_url: Optional[str] = None
 proxy_controller: Optional[ProxyController] = None
@@ -37,6 +38,7 @@ class CopilotProxy:
         self.copilot_urls = (
             "https://api.githubcopilot.com",
             "https://api.individual.githubcopilot.com",
+            "https://api.business.githubcopilot.com",
         )
 
     def _is_copilot_request(self, url: str) -> bool:

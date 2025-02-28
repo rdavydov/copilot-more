@@ -1,4 +1,3 @@
-import os
 import queue
 import threading
 import time
@@ -7,6 +6,7 @@ from typing import Optional
 from aiohttp import ClientSession
 
 from copilot_more.logger import logger
+from copilot_more.settings import settings
 
 # Global variables for token caching
 # {"token": "xxx", "expires_at": 1732767035}
@@ -56,16 +56,13 @@ async def get_cached_copilot_token() -> dict:
 
 async def refresh_token() -> dict:
     logger.info("Attempting to refresh token")
-    if os.getenv("REFRESH_TOKEN") is None:
-        logger.error("REFRESH_TOKEN environment variable is not set")
-        raise ValueError("REFRESH_TOKEN environment variable is not set.")
 
     async with ClientSession() as session:
         async with session.get(
             url="https://api.github.com/copilot_internal/v2/token",
             headers={
-                "Authorization": "token " + (os.getenv("REFRESH_TOKEN") or ""),
-                "editor-version": "vscode/1.95.3",
+                "Authorization": "token " + settings.refresh_token,
+                "editor-version": settings.editor_version,
             },
         ) as response:
             if response.status == 200:

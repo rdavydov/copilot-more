@@ -55,8 +55,37 @@ The exposed models aren't limited to coding tasks—you can connect any AI clien
     docker-compose up --build
     ```
 
-
 3. Alternatively, use the `refresh-token.sh` script to automate the above.
+
+## ⚙️ Configuration
+
+The application allows you to customize behavior through environment variables or a `.env` file. Available configuration options:
+
+| Setting | Environment Variable | Default | Description |
+|---------|---------------------|---------|-------------|
+| GitHub Refresh Token | `REFRESH_TOKEN` | None (Required) | GitHub Copilot refresh token |
+| API Endpoint | `CHAT_COMPLETIONS_API_ENDPOINT` | https://api.individual.githubcopilot.com/chat/completions | Chat completions API endpoint (Enterprise users should use https://api.business.githubcopilot.com/chat/completions) |
+| Models Endpoint | `MODELS_API_ENDPOINT` | https://api.individual.githubcopilot.com/models | Models API endpoint (Enterprise users should use https://api.business.githubcopilot.com/models) |
+| Editor Version | `EDITOR_VERSION` | vscode/1.95.3 | Editor version for API requests |
+| Max Tokens | `MAX_TOKENS` | 10240 | Maximum tokens in responses |
+| Timeout | `TIMEOUT_SECONDS` | 300 | API request timeout in seconds |
+| Record Traffic | `RECORD_TRAFFIC` | false | Whether to record API traffic |
+
+See `.env.example` for a template configuration file. You can `cp .env.example .env` and modify the values as needed.
+
+Once you have set up your `.env` file with all your configuration settings, you can simply run the server without specifying environment variables on the command line:
+
+```bash
+poetry run uvicorn copilot_more.server:app --port 15432
+```
+
+### Enterprise Users
+If you are an enterprise GitHub Copilot user, you must use the business API endpoints instead of the individual ones:
+```
+CHAT_COMPLETIONS_API_ENDPOINT=https://api.business.githubcopilot.com/chat/completions
+MODELS_API_ENDPOINT=https://api.business.githubcopilot.com/models
+```
+These can be set in your `.env` file or as environment variables when running the application.
 
 ## ✨ Magic Time
 Now you can connect Cline or any other AI client to `http://localhost:15432` and start coding with the power of GPT-4o and Claude-3.5-Sonnet without worrying about the cost. Note, the copilot-more manages the access token, you can use whatever string as API keys if Cline or the AI tools ask for one.
@@ -78,17 +107,19 @@ For troubleshooting integration issues, you can enable traffic logging to inspec
 
 ### Traffic Logging
 
-To enable logging, set the `RECORD_TRAFFIC` environment variable:
+To enable logging, set the `RECORD_TRAFFIC` environment variable to `true`:
 
 ```bash
 RECORD_TRAFFIC=true REFRESH_TOKEN=gho_xxxx poetry run uvicorn copilot_more.server:app --port 15432
 ```
 
+Alternatively, you can add `RECORD_TRAFFIC=true` to your `.env` file.
+
 All traffic will be logged to files in the current directory with the naming pattern: copilot_traffic_YYYYMMDD_HHMMSS.mitm
 
 Attach this file when reporting issues.
 
-Note: the Authorization header has ben redacted. So the refresh token won't be leaked.
+Note: the Authorization header has been redacted, so the refresh token won't be leaked.
 
 ## 🤔 Limitation
 
