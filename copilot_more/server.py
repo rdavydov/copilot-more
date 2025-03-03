@@ -79,9 +79,19 @@ async def lifespan(app: FastAPI):
                 f"({limit.behavior.value})"
             )
 
+    # Platform-specific signal handling
     loop = asyncio.get_running_loop()
-    for sig in (signal.SIGTERM, signal.SIGINT):
-        loop.add_signal_handler(sig, handle_signal)
+    import sys
+    if sys.platform != 'win32':  # Only add signal handlers on non-Windows platforms
+        for sig in (signal.SIGTERM, signal.SIGINT):
+            loop.add_signal_handler(sig, handle_signal)
+    else:
+        # Alternative approach for Windows
+        import signal
+        # Use the default signal handler on Windows
+        for sig in (signal.SIGTERM, signal.SIGINT):
+            signal.signal(sig, lambda s, f: os._exit(0))
+        logger.info("Using standard signal handlers on Windows")
 
     yield
 
