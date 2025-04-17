@@ -52,5 +52,23 @@
       "requests": 50,
       "behavior": "delay"
     }
+  ],
+  "gemini-2.5-pro": [
+    {
+      "window_minutes": 1,
+      "total_tokens": 50000,
+      "input_tokens": 50000,
+      "output_tokens": 5000,
+      "requests": 5,
+      "behavior": "delay"
+    },
+    {
+      "window_minutes": 60,
+      "total_tokens": 500000,
+      "input_tokens": 500000,
+      "output_tokens": 50000,
+      "requests": 50,
+      "behavior": "delay"
+    }
   ]
 }
